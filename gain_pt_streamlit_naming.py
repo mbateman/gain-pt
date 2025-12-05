@@ -1,4 +1,4 @@
-# gain_pt_streamlit_v7_2.py
+# gain_pt_streamlit_naming.py
 """
 GAIN Naming Game v7.2
 
