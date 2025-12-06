@@ -1,9 +1,7 @@
 from openai import OpenAI
-import os
-from dotenv import load_dotenv, dotenv_values 
-load_dotenv() 
+import streamlit as st
 
-api_key = os.getenv("open_router_key")
+api_key = st.secrets["open_router_key"]
 
 def get_synonyms(word):
     client = OpenAI(
