@@ -616,7 +616,7 @@ elif slot == "naming":
             switch_user()
             st.rerun()
     else:
-        st.info("Await next dice roll.")
+        st.info(f"Roll the dice {st.session_state['current_player']}!")
         
 elif slot == "sentence":
     task = st.session_state["player_task_map"].get(current)
@@ -642,14 +642,14 @@ elif slot == "sentence":
             switch_user()
             st.rerun()
     else:
-        st.info("Await next dice roll.")
+        st.info(f"Roll the dice {st.session_state['current_player']}!")
 
 elif slot == "guess":
     task = st.session_state["player_task_map"].get(current)
     
     # If task cleared already → hide UI
     if not task:
-        st.info("Await next dice roll.")
+        st.info(f"Roll the dice {st.session_state['current_player']}!")
     else:
         st.subheader("Guess Task")
         # existing guess-state creation here
