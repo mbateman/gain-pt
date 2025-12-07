@@ -1,5 +1,6 @@
-openai==2.8.1
-pandas==2.3.3
-Pillow==8.4.0
-streamlit==1.50.0
-streamlit-drawable-canvas==0.9.3
+numpy
+openai
+pandas
+Pillow
+streamlit
+streamlit-drawable-canvas
