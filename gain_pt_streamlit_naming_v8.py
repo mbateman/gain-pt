@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 import json
 import pandas as pd
 import random
-import math
+
 from synonyms import get_synonyms
 
 # -----------------------
@@ -164,7 +164,7 @@ def random_task_image_and_word():
     img = random.choice(SCENARIO_IMAGES)
     return img, img.stem.replace("_", " ").lower()
 
-def is_correct_answer(user_text, target_word):
+def is_correct_answer(user_text, target_word, slot):
     if not user_text:
         return False
     ui = user_text.strip().lower()
@@ -172,11 +172,10 @@ def is_correct_answer(user_text, target_word):
     if exact_match:
         return True
     else:
-        synonyms = get_synonyms(ui)
-        print(f"DEBUG: synonyms for {ui}: {synonyms}")
-        return ui in synonyms
-
-    # target_word in get_synonyms(target_word)
+        synonyms = get_synonyms(ui) if slot == "naming" else get_synonyms(target_word)
+        input = ui if slot == "naming" else target_word
+        print(f"DEBUG: synonyms for {input}: {synonyms}")
+        return input in synonyms
 
 # -----------------------
 # Session defaults (multiplayer)
@@ -198,6 +197,9 @@ st.session_state.setdefault("coord_overrides", {})
 st.session_state.setdefault("captured_corrections", [])
 st.session_state.setdefault("token_offset_x", DEFAULT_TOKEN_OFFSET_X)
 st.session_state.setdefault("token_offset_y", DEFAULT_TOKEN_OFFSET_Y)
+st.session_state.setdefault("last_feedback_message", "")
+st.session_state.setdefault("last_feedback_type", "")  # "success", "error", "warning", "info"
+
 # per-player last_task_position mapping
 if "last_task_positions" not in st.session_state:
     st.session_state["last_task_positions"] = {p: None for p in st.session_state["players"]}
@@ -367,20 +369,31 @@ def record_feedback(player, kind, message):
     # kind: "success"|"error"|"info"|"warning"
     st.session_state[f"last_feedback_{player}"] = {"kind": kind, "msg": message}
 
-def show_and_clear_feedback(player):
-    key = f"last_feedback_{player}"
-    fb = st.session_state.pop(key, None)
-    if fb:
-        k = fb.get("kind")
-        m = fb.get("msg", "")
-        if k == "success":
-            st.success(m)
-        elif k == "error":
-            st.error(m)
-        elif k == "warning":
-            st.warning(m)
-        else:
-            st.info(m)
+def show_and_clear_all_feedback():
+    """
+    Show feedback for ALL players that have pending messages.
+    Only clear feedback AFTER it has been displayed.
+    """
+    to_clear = []
+    for p in st.session_state["players"]:
+        key = f"last_feedback_{p}"
+        fb = st.session_state.get(key)
+        if fb:
+            k = fb.get("kind")
+            m = fb.get("msg", "")
+            if k == "success":
+                st.success(f"{p}: {m}")
+            elif k == "error":
+                st.error(f"{p}: {m}")
+            elif k == "warning":
+                st.warning(f"{p}: {m}")
+            else:
+                st.info(f"{p}: {m}")
+            to_clear.append(key)
+
+    # Clear AFTER displaying.
+    for key in to_clear:
+        st.session_state.pop(key, None)
 
 
 def switch_user():
@@ -530,15 +543,6 @@ with col_controls:
         elif level == "error":
             st.error(msg)
     
-    if show_quick_jump:
-        st.markdown("Quick jump to index (selected player):")
-        j = st.number_input("Index (0-based):", min_value=0, max_value=TOTAL_SLOTS-1,
-                            value=st.session_state["player_positions"].get(current, 0), key="jump_index")
-        if st.button("Go to index for selected player"):
-            st.session_state["player_positions"][current] = int(j)
-            st.session_state["player_task_map"].pop(current, None)
-            st.rerun()
-
     # Fine tune / capture UI (per selected player)
     if show_fine_tune:
         st.markdown("### Token fine-tune")
@@ -572,13 +576,14 @@ with col_controls:
 # -----------------------
 current = get_selected_player()
 pos = int(st.session_state["player_positions"].get(current, 0))
-slot = BASE_PATTERN[pos]
+show_and_clear_all_feedback()
 
+slot = BASE_PATTERN[pos]
 st.markdown(f"**Selected player:** {current}")
 st.markdown(f"**Position:** {pos} — Slot: {slot}")
 
 # Show any feedback from previous submission (persistent across rerun)
-show_and_clear_feedback(current)
+
 
 if slot == "start":
     st.info("🎯 Start: on arrow — roll to begin.")
@@ -598,7 +603,7 @@ elif slot == "naming":
     
         if st.button("Submit naming", key=f"submit_naming_{current}"):
             target = task["word"] if task else ""
-            was_correct = is_correct_answer(ans, target)
+            was_correct = is_correct_answer(ans, target, slot="naming")
             # update score safely (overwrite dict to trigger session_state change)
             scores = st.session_state["player_scores"]
             if was_correct:
@@ -627,7 +632,7 @@ elif slot == "sentence":
         sent = st.text_area("Write a sentence using the target word", key=f"sentence_input_{current}")
         if st.button("Submit sentence", key=f"submit_sentence_{current}"):
             target = task["word"] if task else ""
-            was_correct = is_correct_answer(sent, target)
+            was_correct = is_correct_answer(sent, target, slot="sentence")
             scores = st.session_state["player_scores"]
             if was_correct:
                 scores[current] = scores.get(current, 0) + 1
@@ -736,7 +741,15 @@ elif slot == "guess":
             st.rerun()
 
 # After task logic show any feedback stored during submission
-show_and_clear_feedback(current)
+
+if show_quick_jump:
+    st.markdown("Quick jump to index (selected player):")
+    j = st.number_input("Index (0-based):", min_value=0, max_value=TOTAL_SLOTS-1,
+                        value=st.session_state["player_positions"].get(current, 0), key="jump_index")
+    if st.button("Go to index for selected player"):
+        st.session_state["player_positions"][current] = int(j)
+        st.session_state["player_task_map"].pop(current, None)
+        st.rerun()
 
 # Status snapshot
 st.markdown("Game status snapshot:")
