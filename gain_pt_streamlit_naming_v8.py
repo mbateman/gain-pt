@@ -18,7 +18,23 @@ from synonyms import get_synonyms
 # -----------------------
 # Config
 # -----------------------
-st.set_page_config(page_title="GAIN Naming Game v8", layout="wide")
+st.set_page_config(page_title="GAIN PT Naming Game", layout="wide")
+st.markdown("""
+<style>
+/* Reduce left column padding */
+.block-container {
+    padding-top: 1rem;
+    padding-bottom: 0rem;
+}
+
+/* Reduce spacing between widgets */
+.row-widget.stRadio, .row-widget.stButton, .row-widget.stTextInput, .row-widget.stTextArea {
+    margin-bottom: 0.4rem;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 DIAGRAMS_DIR = Path("diagrams")
 BOARD_PATH = DIAGRAMS_DIR / "NamingGame" / "NamingGameBoard.png"
 SCENARIOS_DIR = DIAGRAMS_DIR / "Scenarios"
@@ -456,8 +472,7 @@ st.sidebar.markdown("Create CSV: index,x,y (only rows you want to correct).")
 # -----------------------
 st.title("GAIN Naming Game — v8 (multiplayer)")
 
-
-col_controls, col_board = st.columns([1, 2])
+col_controls, col_board = st.columns([1.2, 1.8], vertical_alignment="top")
 
 with col_board:
     board_img = draw_board_with_overlays(position_map=st.session_state["player_positions"],
@@ -466,7 +481,7 @@ with col_board:
     if show_coord_grid:
         board_img = draw_coordinate_grid(board_img)
     # use width="stretch" following your original preference
-    st.image(board_img, width="stretch")
+    st.image(board_img, width="content")
 
 with col_controls:
     st.markdown("### Players & Controls")
