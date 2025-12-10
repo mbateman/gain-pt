@@ -51,6 +51,15 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown("""
+<style>
+/* Reduce vertical gap between stacked messages */
+.stMarkdown p {
+    margin-bottom: 0.25rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 DIAGRAMS_DIR = Path("diagrams")
 BOARD_PATH = DIAGRAMS_DIR / "NamingGame" / "NamingGameBoard.png"
