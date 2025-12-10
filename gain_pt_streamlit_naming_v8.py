@@ -19,21 +19,38 @@ from synonyms import get_synonyms
 # Config
 # -----------------------
 st.set_page_config(page_title="GAIN PT Naming Game", layout="wide")
-st.markdown("""
-<style>
-/* Reduce left column padding */
-.block-container {
-    padding-top: 1rem;
-    padding-bottom: 0rem;
-}
+st.markdown(
+    """
+    <style>
+    /* Entire app */
+    html, body, [class*="css"]  {
+        font-size: 28px !important;
+    }
 
-/* Reduce spacing between widgets */
-.row-widget.stRadio, .row-widget.stButton, .row-widget.stTextInput, .row-widget.stTextArea {
-    margin-bottom: 0.4rem;
-}
+    /* Streamlit main app container */
+    .stApp {
+        font-size: 28px !important;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    /* Inputs, buttons, labels */
+    button, input, label, textarea, select {
+        font-size: 18px !important;
+    }
+
+    /* Headers */
+    h1 { font-size: 2.2rem !important; }
+    h2 { font-size: 1.8rem !important; }
+    h3 { font-size: 1.4rem !important; }
+
+    /* Info / success / error boxes */
+    div[data-testid="stAlert"] {
+        font-size: 18px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
 DIAGRAMS_DIR = Path("diagrams")
 BOARD_PATH = DIAGRAMS_DIR / "NamingGame" / "NamingGameBoard.png"
@@ -472,7 +489,8 @@ st.sidebar.markdown("Create CSV: index,x,y (only rows you want to correct).")
 # -----------------------
 st.title("GAIN Naming Game — v8 (multiplayer)")
 
-col_controls, col_board = st.columns([1.2, 1.8], vertical_alignment="top")
+# col_controls, col_board = st.columns([1.2, 1.8], vertical_alignment="top")
+col_controls, col_board = st.columns([1.25, 1.75], vertical_alignment="top")
 
 with col_board:
     board_img = draw_board_with_overlays(position_map=st.session_state["player_positions"],
@@ -494,7 +512,7 @@ with col_controls:
         "Current player (manual select):",
         st.session_state["players"],
         index=st.session_state["players"].index(st.session_state["current_player"])
-)
+    )
     # If user changed it manually → update state
     if selected_ui_player != st.session_state["current_player"]:
         st.session_state["current_player"] = selected_ui_player
@@ -508,7 +526,9 @@ with col_controls:
             st.session_state["player_skip"][current] = False
             st.rerun()
     
+    
     if st.button("🎲 Roll dice for selected player"):
+        
 
         player_list = st.session_state["players"]
         current = st.session_state["current_player"]
@@ -547,16 +567,20 @@ with col_controls:
 
         st.rerun()
 
+    msg_area = st.empty()   # placeholder for messages
     # Render persistent messages
-    for level, msg in st.session_state["messages"]:
-        if level == "info":
-            st.info(msg)
-        elif level == "success":
-            st.success(msg)
-        elif level == "warning":
-            st.warning(msg)
-        elif level == "error":
-            st.error(msg)
+    with msg_area.container():
+        for level, msg in st.session_state["messages"]:
+            if level == "success":
+                st.success(msg)
+            elif level == "warning":
+                st.warning(msg)
+            elif level == "error":
+                st.error(msg)
+            elif level == "info":
+                st.info(msg)
+
+    # show_and_clear_all_feedback()
     
     # Fine tune / capture UI (per selected player)
     if show_fine_tune:
@@ -591,14 +615,13 @@ with col_controls:
 # -----------------------
 current = get_selected_player()
 pos = int(st.session_state["player_positions"].get(current, 0))
-show_and_clear_all_feedback()
 
 slot = BASE_PATTERN[pos]
 st.markdown(f"**Selected player:** {current}")
 st.markdown(f"**Position:** {pos} — Slot: {slot}")
 
 # Show any feedback from previous submission (persistent across rerun)
-
+show_and_clear_all_feedback()
 
 if slot == "start":
     st.info("🎯 Start: on arrow — roll to begin.")
@@ -613,9 +636,6 @@ elif slot == "naming":
         st.subheader("Naming")
         ans = st.text_input("What is this called?", key=f"naming_input_{current}")
         
-        # synonyms = get_synonyms(task["word"])  # call to warm up any API if needed
-        # print(f"DEBUG: synonyms for {task['word']}: {synonyms}")
-    
         if st.button("Submit naming", key=f"submit_naming_{current}"):
             target = task["word"] if task else ""
             was_correct = is_correct_answer(ans, target, slot="naming")
