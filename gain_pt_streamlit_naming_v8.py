@@ -210,14 +210,23 @@ def is_correct_answer(user_text, target_word, slot):
     if not user_text:
         return False
     ui = user_text.strip().lower()
-    exact_match = (target_word in ui) or (ui in target_word)
-    if exact_match:
-        return True
-    else:
-        synonyms = get_synonyms(ui) if slot == "naming" else get_synonyms(target_word)
-        input = ui if slot == "naming" else target_word
-        print(f"DEBUG: synonyms for {input}: {synonyms}")
-        return input in synonyms
+    if slot == "naming":
+        exact_match = (target_word in ui) or (ui in target_word)
+        if exact_match:
+            return True
+        else:
+            synonyms = get_synonyms(ui)
+            input = ui if slot == "naming" else target_word
+            print(f"DEBUG: synonyms for {input}: {synonyms}")
+            return input in synonyms
+    elif slot == "sentence":
+        if target_word in ui:
+            return True
+        else:
+            synonyms = get_synonyms(target_word)
+            print(f"DEBUG: synonyms for {target_word}: {synonyms}")
+            return any(syn in ui for syn in synonyms)
+        
 
 # -----------------------
 # Session defaults (multiplayer)
