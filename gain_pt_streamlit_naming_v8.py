@@ -1,6 +1,6 @@
 # gain_pt_streamlit_naming_v8.py
 """
-GAIN Naming Game v8 — multiplayer integration (manual selection)
+GAIN Naming Game — multiplayer integration (manual selection)
 
 Patched so that task submit feedback persists after rerun, tasks do not reappear
 immediately, scores update reliably, and duplicate submit/button issues are removed.
@@ -505,7 +505,7 @@ st.sidebar.markdown("Create CSV: index,x,y (only rows you want to correct).")
 # -----------------------
 # Main UI
 # -----------------------
-st.title("GAIN Naming Game — v8 (multiplayer)")
+st.title("GAIN Naming Game")
 
 # col_controls, col_board = st.columns([1.2, 1.8], vertical_alignment="top")
 col_controls, col_board = st.columns([1.25, 1.75], vertical_alignment="top")
