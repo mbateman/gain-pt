@@ -13,7 +13,7 @@ import json
 import pandas as pd
 import random
 
-from synonyms import get_synonyms
+from language import get_synonyms
 
 # -----------------------
 # Config
