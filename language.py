@@ -13,7 +13,7 @@ model="google/gemma-3-27b-it:free"
 def get_synonyms(word): 
 
     completion = client.chat.completions.create(
-      model=model
+      model=model,
       messages=[
         {
           "role": "user",
